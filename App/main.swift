@@ -34,7 +34,9 @@ if args.count > 1 {
         let out = args.count > 2 ? args[2] : "/tmp/card.png"
         let medium = args.count > 3 && args[3] == "medium"
         MainActor.assumeIsolated {
-            let view = HQCardView(snap: HQSnapshot.load(), medium: medium)
+            // Un 4.º argumento opcional apunta a un JSON de ejemplo (para capturas).
+            let snap = args.count > 4 ? (FileManager.default.contents(atPath: args[4]).flatMap { try? JSONDecoder().decode(HQSnapshot.self, from: $0) }) : HQSnapshot.load()
+            let view = HQCardView(snap: snap, medium: medium)
                 .padding(14).frame(width: medium ? 344 : 164, height: 164, alignment: .topLeading).background(PX.bg)
             let r = ImageRenderer(content: view); r.scale = 2
             if let img = r.nsImage, let t = img.tiffRepresentation, let rep = NSBitmapImageRep(data: t),

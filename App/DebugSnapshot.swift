@@ -26,9 +26,11 @@ final class DebugSnapshot: NSObject, WKNavigationDelegate {
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        let payload = DataStore().refresh()
-        let json = (try? JSONEncoder().encode(payload)).map { String(decoding: $0, as: UTF8.self) } ?? "{}"
-        web.evaluateJavaScript("hq.setMode('\(mode)', true); hq.update(\(json)); \(extraJS)") { res, err in
+        // Con datos de ejemplo (`__demo`) no se cargan tus sesiones reales.
+        let demo = extraJS.contains("__demo")
+        let json = demo ? "" : ((try? JSONEncoder().encode(DataStore().refresh())).map { String(decoding: $0, as: UTF8.self) } ?? "{}")
+        let prefix = demo ? "hq.setMode('\(mode)', true); " : "hq.setMode('\(mode)', true); hq.update(\(json)); "
+        web.evaluateJavaScript(prefix + extraJS) { res, err in
             if let r = res { print("JS: \(r)") }
             if let err = err { print("JS error: \(err)") }
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {

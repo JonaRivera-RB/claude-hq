@@ -1,0 +1,56 @@
+{
+ "updatedAt": 1794352163.592479,
+ "fiveHour": {
+  "usedPercentage": 42,
+  "resetsAt": 1794361043.592479
+ },
+ "sevenDay": {
+  "usedPercentage": 18,
+  "resetsAt": 1794697763.592479
+ },
+ "limitsUpdatedAt": 1794352163.592479,
+ "tokensToday": 1240512,
+ "plan": "Max",
+ "agents": [
+  {
+   "id": "1",
+   "name": "web-app",
+   "model": "Opus",
+   "state": "working",
+   "now": "Editando LoginForm.tsx",
+   "subagents": 2
+  },
+  {
+   "id": "2",
+   "name": "api-backend",
+   "model": "Sonnet",
+   "state": "waiting",
+   "now": "Pide permiso: npm test",
+   "subagents": 0
+  },
+  {
+   "id": "3",
+   "name": "docs",
+   "model": "Haiku",
+   "state": "idle",
+   "now": "Lista para tu mensaje",
+   "subagents": 0
+  },
+  {
+   "id": "4",
+   "name": "data-etl",
+   "model": "Sonnet",
+   "state": "error",
+   "now": "Error: rate_limit",
+   "subagents": 1
+  },
+  {
+   "id": "5",
+   "name": "mobile-app",
+   "model": "Opus",
+   "state": "working",
+   "now": "Usando figma",
+   "subagents": 6
+  }
+ ]
+}
