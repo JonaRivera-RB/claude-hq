@@ -1,0 +1,83 @@
+name: ClaudeHQ
+options:
+  bundleIdPrefix: com.jonarivera
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    DEVELOPMENT_TEAM: T594C3YA28
+    CODE_SIGN_STYLE: Automatic
+    CODE_SIGN_IDENTITY: "Apple Development"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.0"
+    ENABLE_HARDENED_RUNTIME: NO
+    GENERATE_INFOPLIST_FILE: NO
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+targets:
+  ClaudeHQ:
+    type: application
+    platform: macOS
+    sources:
+      - path: App
+      - path: Shared
+      - path: web
+        type: folder
+        buildPhase: resources
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleName: ClaudeHQ
+        CFBundleDisplayName: Claude HQ
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        CFBundleExecutable: "$(EXECUTABLE_NAME)"
+        CFBundleIdentifier: "$(PRODUCT_BUNDLE_IDENTIFIER)"
+        CFBundlePackageType: APPL
+        LSUIElement: true
+        LSMinimumSystemVersion: "14.0"
+        NSAppleEventsUsageDescription: "Claude HQ usa esto para llevarte a la ventana de Terminal o iTerm2 donde corre cada sesión de Claude Code."
+        NSHumanReadableCopyright: "Uso personal"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jonarivera.ClaudeHQ
+        PRODUCT_NAME: ClaudeHQ
+    entitlements:
+      path: App/ClaudeHQ.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - T594C3YA28.com.jonarivera.ClaudeHQ
+    dependencies:
+      - target: ClaudeHQWidget
+        embed: true
+  ClaudeHQWidget:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: Widget
+      - path: Shared
+    info:
+      path: Widget/Info.plist
+      properties:
+        CFBundleDisplayName: Claude HQ
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        CFBundleExecutable: "$(EXECUTABLE_NAME)"
+        CFBundleIdentifier: "$(PRODUCT_BUNDLE_IDENTIFIER)"
+        CFBundlePackageType: XPC!
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: Widget/ClaudeHQWidget.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.application-groups:
+          - T594C3YA28.com.jonarivera.ClaudeHQ
+        com.apple.security.temporary-exception.files.home-relative-path.read-only:
+          - /.claude-hq/
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jonarivera.ClaudeHQ.Widget
+        PRODUCT_NAME: ClaudeHQWidget
+        SKIP_INSTALL: YES

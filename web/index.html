@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude HQ</title>
+<style>
+@font-face{font-family:"Pixelify Sans";src:url("fonts/PixelifySans.ttf") format("truetype");font-weight:400 700;font-display:swap}
+:root{--bg:#1B1D2E;--panel:#23263F;--deep:#11121C;--line:#3A3F66;--line2:#4A4F80;--btn:#2B2F52;--ink:#E8E9F5;--muted:#A9AED6;--gold:#FFD166;--gold2:#D9A53A;--mint:#7FE0B4;--blue:#6C8EF5;--clay:#D97757;--red:#FF5D5D;--orange:#FF9F43;--px:"Pixelify Sans",ui-monospace,Menlo,monospace;--num:ui-monospace,"SF Mono",Menlo,monospace}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,Inter,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden;user-select:none;-webkit-user-select:none}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.px{font-family:var(--px)}
+.num{font-family:var(--num);font-weight:600}
+#app{height:100%;display:flex;flex-direction:column;gap:10px;padding:4px 12px 12px}
+#app.mode-expanded{overflow-y:auto}
+#app.mode-expanded .scene{flex:none;height:340px}
+#app::-webkit-scrollbar{width:6px}#app::-webkit-scrollbar-thumb{background:var(--line2)}
+.row{display:flex;align-items:center}
+.btn{background:var(--btn);border:2px solid var(--line2);box-shadow:inset 0 -4px 0 #1E2140;font-family:var(--px);font-size:13px;min-height:40px;padding:0 12px;transition:transform .08s steps(2)}
+.btn:hover{filter:brightness(1.15)}.btn:active{transform:translateY(2px)}
+.btn.gold{background:var(--gold);color:#1B1D2E;border-color:var(--deep);box-shadow:inset 0 -4px 0 var(--gold2);font-weight:700}
+.btn.clay{background:var(--clay);color:#1B1D2E;border-color:var(--deep);box-shadow:inset 0 -4px 0 #A9553A;font-weight:700}
+.btn.sel{background:var(--ink);color:#1B1D2E;border-color:var(--deep);box-shadow:inset 0 -4px 0 var(--muted);font-weight:700}
+.ibtn{width:30px;height:30px;padding:0;display:flex;align-items:center;justify-content:center;background:var(--btn);border:2px solid var(--line2)}
+.ibtn.on{color:var(--gold)}
+header{height:36px;gap:8px;flex-shrink:0}
+header .title{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.1}
+header .title b{font-family:var(--px);font-size:17px;letter-spacing:1px}
+header .title span{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip{height:28px;padding:0 7px;gap:5px;background:var(--deep);border:2px solid var(--line);font-family:var(--num);font-weight:600;font-size:12px;display:flex;align-items:center}
+.banner{display:flex;align-items:center;gap:8px;padding:8px 10px;border:2px solid;font-family:var(--px);font-size:13px;flex-shrink:0;text-align:left;width:100%}
+.banner span{flex:1}
+.banner .tag{flex:none;padding:1px 7px;font-weight:700;color:#1B1D2E}
+.b-info{background:#1E2A3F;border-color:var(--blue);color:#A9C0FF}.b-info .tag{background:var(--blue)}
+.b-wait{background:#3A3217;border-color:var(--gold);color:var(--gold)}.b-wait .tag{background:var(--gold)}
+.b-warn{background:#3A2A17;border-color:var(--orange);color:#FFC27A}.b-warn .tag{background:var(--orange)}
+.b-crit{background:#3A1A1E;border-color:var(--red);color:#FF9A9A}.b-crit .tag{background:var(--red)}
+.hud{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;flex-shrink:0}
+.meter .lbl{display:flex;justify-content:space-between;font-family:var(--num);font-weight:700;font-size:11px;margin-bottom:4px;gap:6px}
+.segs{position:relative;overflow:hidden;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:2px;height:13px;padding:2px;background:var(--deep)}
+.segs i{background:#2B2F52}
+.segs .shine{position:absolute;left:0;top:0;width:10px;height:17px;background:rgba(255,255,255,.3);animation:shine 2.8s linear infinite}
+.meter .sub{font-size:11px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scene{position:relative;flex:1;min-height:200px;outline:2px solid var(--line);display:flex;flex-direction:column}
+.wall{height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 10px;border-bottom:4px solid}
+.clockbox{width:72px;height:30px;background:#1E2140;border:2px solid var(--deep);display:flex;align-items:center;justify-content:center;font-family:var(--num);font-weight:600;font-size:15px}
+.floor{flex:1;min-height:0;overflow-y:auto}
+.floor::-webkit-scrollbar{width:6px}.floor::-webkit-scrollbar-thumb{background:var(--line2)}.floor::-webkit-scrollbar-track{background:var(--deep)}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+.tile{position:relative;height:138px;padding:0;border:0;background:transparent}
+.tile .in{position:absolute;left:50%;top:0;width:92px;height:138px;margin-left:-46px}
+.tile.on{background:rgba(255,209,102,.12);box-shadow:inset 0 0 0 2px var(--gold)}
+.tile .plate{position:absolute;left:4px;right:4px;top:120px;font-family:var(--num);font-weight:600;font-size:10px;line-height:15px;padding:0 2px;background:var(--deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile.on .plate{background:var(--gold);color:#1B1D2E}
+.bubble{position:absolute;left:2px;top:2px;font-family:var(--px);font-size:11px;padding:0 3px;border:2px solid var(--deep);font-weight:700;color:#1B1D2E}
+.empty{height:100%;min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:16px}
+.empty b{font-family:var(--px);font-size:15px;font-weight:400}
+.empty span{font-size:12px;color:var(--muted)}
+.pop{position:absolute;left:6px;right:6px;bottom:6px;background:var(--deep);border:2px solid var(--ink);box-shadow:0 0 0 2px var(--deep),0 6px 0 rgba(0,0,0,.35);padding:10px;display:flex;flex-direction:column;gap:6px;animation:pop .25s steps(3) both}
+.mchip{font-family:var(--num);font-weight:700;font-size:10px;padding:1px 6px;color:#1B1D2E;white-space:nowrap}
+.now{font-size:13px;line-height:1.35;word-break:break-word}
+.now b{font-family:var(--px);font-weight:400;color:var(--gold)}
+.meta{font-size:12px;color:var(--muted)}
+.log{display:flex;flex-direction:column;gap:3px;padding:8px;background:var(--bg)}
+.log div{display:flex;gap:8px;font-size:12px}
+.log div span:first-child{font-family:var(--num);font-weight:600;color:var(--muted);width:40px;flex:none}
+.ctxbar{flex:1;height:8px;background:#2B2F52;padding:1px}.ctxbar i{display:block;height:6px;background:var(--blue)}
+.exp{display:none;flex-direction:column;gap:10px;flex-shrink:0}
+.mode-expanded .exp{display:flex}
+.mode-expanded .pop{display:none}
+.card{background:var(--deep);border:2px solid var(--ink);box-shadow:inset 0 0 0 2px var(--deep),inset 0 0 0 4px var(--line);padding:12px;display:flex;flex-direction:column;gap:8px}
+.label{font-family:var(--px);font-size:12px;color:var(--muted)}
+.choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.ticker{overflow:hidden;height:28px;background:var(--deep);border:2px solid var(--line);display:flex;align-items:center;flex-shrink:0}
+.ticker>div{display:flex;white-space:nowrap;font-family:var(--num);font-size:11px;color:var(--muted);animation:ticker 40s linear infinite}
+.ticker span{padding-right:28px}
+footer{height:40px;gap:8px;flex-shrink:0}
+footer .t{flex:1;display:flex;flex-direction:column;line-height:1.15}
+footer .t b{font-family:var(--num);font-weight:700;font-size:14px}
+footer .t span{font-size:11px;color:var(--muted)}
+.overlay{position:fixed;inset:0;background:var(--bg);z-index:10;display:none;flex-direction:column;gap:12px;padding:8px 12px 12px;overflow-y:auto}
+.overlay.show{display:flex}
+.sect{background:var(--panel);border:2px solid var(--line);padding:12px;display:flex;flex-direction:column;gap:8px}
+.sect h3{margin:0;font-family:var(--px);font-weight:400;font-size:14px}
+.sect p{margin:0;font-size:12px;color:var(--muted);line-height:1.45}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:12px;color:var(--muted)}
+input[type=password],input[type=text]{height:40px;background:var(--deep);border:2px solid var(--line2);color:var(--ink);padding:0 10px;font-size:13px;user-select:text;-webkit-user-select:text}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px}
+.gate{position:fixed;inset:0;z-index:20;background:rgba(17,18,28,.96);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center}
+.gate.show{display:flex}
+.gate b{font-family:var(--px);font-weight:400;font-size:18px}
+.gate p{margin:0;font-size:13px;color:var(--muted);line-height:1.5;max-width:300px}
+#toast{position:fixed;left:12px;right:12px;bottom:60px;z-index:30;background:#1F3A2B;color:var(--mint);border:2px solid #3E8E5A;padding:8px 10px;font-family:var(--px);font-size:12px;display:none}
+#toast.show{display:block;animation:pop .25s steps(3) both}
+.f1{animation:f1 .36s linear infinite}.f2{animation:f2 .36s linear infinite}.sf1{animation:f1 1.4s linear infinite}.sf2{animation:f2 1.4s linear infinite}
+@keyframes f1{0%,49%{opacity:1}50%,100%{opacity:0}}@keyframes f2{0%,49%{opacity:0}50%,100%{opacity:1}}
+.lid{animation:lid 3.2s linear infinite}@keyframes lid{0%,93%{opacity:0}94%,100%{opacity:1}}
+.scroll{animation:scroll 1.6s steps(4) infinite}@keyframes scroll{to{transform:translateY(-16px)}}
+.cloud{animation:cloud 16s linear infinite}.cloud2{animation:cloud 24s linear infinite;animation-delay:-10s}@keyframes cloud{0%{transform:translateX(-60px)}100%{transform:translateX(160px)}}
+.star{animation:blink 1.8s steps(2) infinite}
+.sway{transform-box:fill-box;transform-origin:50% 100%;animation:sway 2.4s steps(2) infinite}@keyframes sway{0%{transform:rotate(-3deg)}100%{transform:rotate(3deg)}}
+.steam{animation:steam 1.8s steps(6) infinite}@keyframes steam{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-12px);opacity:0}}
+.blink{animation:blink .9s steps(2) infinite}.fast{animation:blink .45s steps(2) infinite}@keyframes blink{0%{opacity:1}100%{opacity:.25}}
+.bounce{animation:bounce .8s steps(2) infinite}@keyframes bounce{to{transform:translateY(-4px)}}
+.shake{animation:shake .5s steps(2) infinite}@keyframes shake{0%{transform:translateX(-1px)}100%{transform:translateX(1px)}}
+.rise{animation:rise 2.4s steps(8) infinite}@keyframes rise{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(-26px);opacity:0}}
+.zz{animation:zz 2.4s steps(4) infinite}@keyframes zz{0%{transform:translate(0,0);opacity:0}20%{opacity:1}100%{transform:translate(8px,-14px);opacity:0}}
+.hop{animation:hop .6s steps(2) infinite}@keyframes hop{to{transform:translateY(-2px)}}
+.coin{animation:coin .9s steps(4) infinite}@keyframes coin{0%,100%{transform:scaleX(1)}50%{transform:scaleX(.2)}}
+@keyframes shine{0%{transform:translateX(-40px)}60%,100%{transform:translateX(400px)}}
+@keyframes ticker{to{transform:translateX(-50%)}}
+@keyframes pop{0%{transform:translateY(12px);opacity:0}100%{transform:translateY(0);opacity:1}}
+.tile.arriving .who{animation:walkin 1.2s steps(6) both}
+@keyframes walkin{0%{transform:translateX(-70px);opacity:0}30%{opacity:1}100%{transform:translateX(0)}}
+.tile.leaving{pointer-events:none;animation:tilefade 2.4s steps(6) forwards}
+.tile.leaving .who{animation:walkout 1.8s steps(9) forwards}
+@keyframes walkout{0%{transform:translateX(0)}90%{opacity:1}100%{transform:translateX(70px);opacity:0}}
+@keyframes tilefade{0%,70%{opacity:1}100%{opacity:0}}
+.bye{position:absolute;left:50px;top:40px;font-family:var(--num);font-weight:700;font-size:10px;background:#E8E9F5;color:#1B1D2E;padding:0 4px;border:2px solid var(--deep)}
+.hist{display:flex;flex-direction:column;gap:0;background:var(--deep);border:2px solid var(--line)}
+.hist div{display:flex;gap:10px;padding:7px 10px;font-size:12px;border-bottom:1px solid #23263F}
+.hist div:last-child{border-bottom:0}
+.hist div span:first-child{font-family:var(--num);font-weight:600;color:var(--muted);width:44px;flex:none}
+@media (prefers-reduced-motion: reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<div id="app" class="mode-compact">
+  <header class="row">
+    <svg width="24" height="24" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><rect width="7" height="7" fill="#D97757"/><rect x="1" y="1" width="1" height="1" fill="#1B1D2E"/><rect x="5" y="1" width="1" height="1" fill="#1B1D2E"/><rect x="3" y="2" width="1" height="3" fill="#FFF3E6"/><rect x="2" y="3" width="3" height="1" fill="#FFF3E6"/></svg>
+    <div class="title"><b>CLAUDE HQ</b><span id="subtitle">Cargando…</span></div>
+    <span class="chip" id="clockChip"><span id="skyIcon"></span><span id="clockTxt">--:--</span></span>
+    <button class="ibtn" id="btnExpand" aria-label="Expandir" title="Expandir / compactar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M14 4h6v6"/><path d="M10 20H4v-6"/><path d="M20 4l-7 7"/><path d="M4 20l7-7"/></svg></button>
+    <button class="ibtn on" id="btnPin" aria-label="Fijar encima de todo" title="Fijar encima de todo"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M12 17v5"/><path d="M9 3h6l-1 6 3 4H7l3-4z"/></svg></button>
+    <button class="ibtn" id="btnSettings" aria-label="Ajustes" title="Ajustes y cuenta"><svg width="14" height="14" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><rect x="3" y="0" width="2" height="8" fill="currentColor"/><rect x="0" y="3" width="8" height="2" fill="currentColor"/><rect x="1" y="1" width="6" height="6" fill="currentColor"/><rect x="3" y="3" width="2" height="2" fill="#2B2F52"/></svg></button>
+  </header>
+
+  <div id="banners"></div>
+
+  <section class="hud">
+    <div class="meter"><div class="lbl"><span>5 HORAS</span><span id="l5">--</span></div><div class="segs" id="s5"></div><div class="sub" id="r5">Sin datos aún</div></div>
+    <div class="meter"><div class="lbl"><span>SEMANA</span><span id="lw">--</span></div><div class="segs" id="sw"></div><div class="sub" id="rw">Sin datos aún</div></div>
+  </section>
+
+  <section class="scene" id="scene">
+    <div class="wall" id="wall">
+      <svg width="52" height="32" viewBox="0 0 52 32" shape-rendering="crispEdges" aria-hidden="true"><rect width="52" height="32" fill="#1E2140"/><rect x="5" y="16" width="8" height="12" fill="#D97757"/><rect x="17" y="8" width="8" height="20" fill="#6C8EF5"/><rect x="29" y="12" width="8" height="16" fill="#7FE0B4"/><rect x="41" y="5" width="7" height="23" fill="#FFD166"/></svg>
+      <svg width="120" height="42" viewBox="0 0 120 42" shape-rendering="crispEdges" aria-hidden="true">
+        <defs><clipPath id="win"><rect x="4" y="4" width="112" height="34"/></clipPath></defs>
+        <rect width="120" height="42" fill="#1E2140"/>
+        <rect id="sky" x="4" y="4" width="112" height="34" fill="#5A7BD0"/>
+        <g clip-path="url(#win)">
+          <g id="stars"><rect class="star" x="12" y="8" width="2" height="2" fill="#fff"/><rect class="star" x="46" y="16" width="2" height="2" fill="#fff" style="animation-delay:.6s"/><rect class="star" x="90" y="8" width="2" height="2" fill="#fff" style="animation-delay:1.1s"/><rect class="star" x="106" y="20" width="2" height="2" fill="#fff" style="animation-delay:.3s"/></g>
+          <rect id="body" x="60" y="10" width="8" height="8" fill="#FFD166"/>
+          <rect id="bite" x="65" y="10" width="3" height="3" fill="#FFD166"/>
+          <g id="clouds"><g class="cloud"><rect x="-14" y="12" width="22" height="5" fill="#E8E9F5"/><rect x="-8" y="9" width="10" height="3" fill="#E8E9F5"/></g><g class="cloud2"><rect x="-14" y="24" width="28" height="5" fill="#C9D3F5"/></g></g>
+          <g id="city"><rect x="4" y="32" width="112" height="6"/><rect x="16" y="27" width="8" height="5"/><rect x="52" y="25" width="12" height="7"/><rect x="90" y="27" width="10" height="5"/></g>
+          <g id="lights"><rect x="54" y="27" width="2" height="2"/><rect x="59" y="27" width="2" height="2"/><rect x="93" y="29" width="2" height="2"/><rect x="26" y="34" width="2" height="2"/></g>
+        </g>
+        <rect x="58" y="4" width="4" height="34" fill="#1E2140"/>
+      </svg>
+      <div class="clockbox" id="wallClock">--:--</div>
+    </div>
+    <div class="floor" id="floor">
+      <div class="grid" id="grid"></div>
+      <div class="empty" id="empty" style="display:none">
+        <svg width="72" height="40" viewBox="0 0 36 20" shape-rendering="crispEdges" aria-hidden="true"><rect x="8" y="10" width="22" height="8" fill="#E8A35C"/><rect x="4" y="6" width="8" height="8" fill="#E8A35C"/><rect x="4" y="4" width="2" height="2" fill="#E8A35C"/><rect x="10" y="4" width="2" height="2" fill="#E8A35C"/><rect x="6" y="9" width="4" height="1" fill="#1B1D2E"/><rect x="16" y="12" width="8" height="2" fill="#C47F3E"/><rect class="sf1" x="30" y="14" width="6" height="3" fill="#E8A35C"/><rect class="sf2" x="30" y="10" width="3" height="6" fill="#E8A35C"/></svg>
+        <b>La oficina está vacía</b>
+        <span>Cuando abras Claude Code en cualquier terminal, tu agente aparecerá aquí.</span>
+        <button class="btn clay" data-act="newSession">ABRIR SESIÓN</button>
+      </div>
+    </div>
+    <div id="pop"></div>
+  </section>
+
+  <section class="exp" id="exp">
+    <div class="card" id="detail"><div id="detailBody" style="display:flex;flex-direction:column;gap:8px"></div><div class="row" id="detailBtns" style="gap:6px;display:none"><button class="btn gold" id="detailBtn" data-act="focus" style="min-height:44px;flex:1"></button><button class="btn" data-act="history" style="min-height:44px;width:110px">HISTORIAL</button></div></div>
+    <div><div class="label" style="margin-bottom:6px">MODELO POR DEFECTO · SESIONES NUEVAS</div><div class="choices" id="models"></div></div>
+    <div><div class="label" style="margin-bottom:6px">PERMISOS POR DEFECTO</div><div class="choices" id="perms"></div></div>
+    <div class="sect" id="apiCard"></div>
+    <div class="ticker"><div id="ticker"></div></div>
+  </section>
+
+  <footer class="row">
+    <svg class="coin" width="18" height="18" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><rect x="2" width="3" height="7" fill="#FFD166"/><rect x="1" y="1" width="5" height="5" fill="#FFD166"/><rect y="2" width="7" height="3" fill="#FFD166"/><rect x="3" y="2" width="1" height="3" fill="#D9A53A"/></svg>
+    <div class="t"><b id="tokToday">— tokens hoy</b><span id="tokSub">Leyendo tus sesiones…</span></div>
+    <button class="btn clay" data-act="newSession">+ AGENTE</button>
+  </footer>
+</div>
+
+<div class="overlay" id="settings">
+  <header class="row">
+    <button class="ibtn" data-act="closeSettings" aria-label="Volver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="title"><b>AJUSTES</b><span>Cuenta, conexión y alertas</span></div>
+  </header>
+  <div class="sect" id="acctSect"></div>
+  <div class="sect" id="instSect"></div>
+  <div class="sect">
+    <h3>API de Anthropic (opcional)</h3>
+    <p>Para ver el gasto y los tokens de la API necesitas una <b>Admin API key</b> (empieza con sk-ant-admin). Se guarda en el Llavero de tu Mac.</p>
+    <div class="field"><label for="keyIn">Admin API key</label><input id="keyIn" type="password" placeholder="sk-ant-admin…" autocomplete="off" spellcheck="false"></div>
+    <div class="row" style="gap:6px"><button class="btn gold" data-act="saveKey" style="flex:1">GUARDAR</button><button class="btn" data-act="clearKey">BORRAR</button></div>
+    <button class="btn" data-act="console">CREAR KEY EN CONSOLE</button>
+    <p id="apiState"></p>
+  </div>
+  <div class="sect">
+    <h3>Widget de escritorio</h3>
+    <p>Una tarjeta sobre tu escritorio con tus límites y agentes. Clic para abrir la oficina, arrástrala para moverla.</p>
+    <div class="choices"><button class="btn" data-act="dw" data-v="none">NINGUNO</button><button class="btn" data-act="dw" data-v="small">CHICO</button><button class="btn" data-act="dw" data-v="medium">MEDIANO</button></div>
+  </div>
+  <div class="sect">
+    <h3>Alertas</h3>
+    <div class="toggle"><span>Avisar al 80% y 95%, permisos y errores</span><button class="btn" id="alertsBtn" data-act="alerts">ON</button></div>
+    <div class="toggle"><span>Sonido en las alertas</span><button class="btn" id="soundBtn" data-act="sound">ON</button></div>
+  </div>
+  <div class="sect">
+    <h3>Privacidad</h3>
+    <p>Claude HQ solo lee archivos de tu Mac (~/.claude). No gasta tokens. Los hooks que instala no imprimen nada, así que no agregan contexto a Claude. La única conexión a internet es la Admin API, si la configuras.</p>
+  </div>
+  <button class="btn" data-act="quit">SALIR DE CLAUDE HQ</button>
+</div>
+
+<div class="overlay" id="history">
+  <header class="row">
+    <button class="ibtn" data-act="closeHistory" aria-label="Volver"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="title"><b>HISTORIAL</b><span id="histSub">—</span></div>
+  </header>
+  <div id="histBody" style="display:flex;flex-direction:column;gap:10px"></div>
+</div>
+
+<div class="gate" id="gate">
+  <svg width="56" height="56" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><rect width="7" height="7" fill="#D97757"/><rect x="1" y="1" width="1" height="1" fill="#1B1D2E"/><rect x="5" y="1" width="1" height="1" fill="#1B1D2E"/><rect x="3" y="2" width="1" height="3" fill="#FFF3E6"/><rect x="2" y="3" width="3" height="1" fill="#FFF3E6"/></svg>
+  <b>Inicia sesión con Claude</b>
+  <p>Claude HQ usa el mismo login de Claude Code para leer tu plan y tus límites. Se abrirá tu navegador para entrar con tu cuenta de Claude.</p>
+  <button class="btn gold" data-act="login" style="min-width:220px">INICIAR SESIÓN CON CLAUDE</button>
+  <p id="gateHint" style="font-size:12px"></p>
+</div>
+
+<div id="toast" role="status"></div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const post = (action, extra) => { try { window.webkit.messageHandlers.hq.postMessage(Object.assign({action}, extra||{})); } catch(e) { console.log(action, extra); } };
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const SHIRT = {Opus:'#D97757', Sonnet:'#6C8EF5', Haiku:'#7FE0B4', Fable:'#B48CF0', Otro:'#E8E9F5'};
+  const SUB = {Opus:'#F0A88A', Sonnet:'#A9C0FF', Haiku:'#B5F0D3', Fable:'#D5BDF7', Otro:'#FFFFFF'};
+  const LOOKS = [['#4B2E1E','#F2C9A0'],['#1B1D2E','#C98E62'],['#B5462E','#F7D9BC'],['#E8E9F5','#E0B08A'],['#6B3FA0','#F2C9A0'],['#2E6B4F','#8D5B3E'],['#D9A53A','#F7D9BC'],['#3A3F66','#8D5B3E']];
+  const STATE = {
+    working:{label:'TRABAJANDO', ink:'#7FE0B4', screen:'#1F4A33'},
+    waiting:{label:'ESPERA PERMISO', ink:'#FFD166', screen:'#8A6A1F'},
+    idle:{label:'INACTIVO', ink:'#A9AED6', screen:'#232742'},
+    error:{label:'ERROR', ink:'#FF7A7A', screen:'#5A1E28'}
+  };
+  const PERMS = [['default','Normal'],['acceptEdits','Ediciones'],['plan','Plan']];
+  let data = null, sel = null, mode = 'compact', pinned = true, lamps = false;
+  const tiles = new Map();
+  let lastOrder = '', lastTicker = '', lastPop = '', lastDetail = '', lastHist = '', histId = null, firstOfficeRender = true;
+
+  function hash(s){ let h = 0; for (const c of s) h = (h*31 + c.charCodeAt(0)) | 0; return Math.abs(h); }
+  function hhmm(epoch){ const d = new Date(epoch*1000); const now = new Date(); const t = String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+    if (d.toDateString() === now.toDateString()) return t;
+    return ['dom','lun','mar','mié','jue','vie','sáb'][d.getDay()] + ' ' + t; }
+  function ago(epoch){ const s = Math.max(0, Date.now()/1000 - epoch); if (s < 60) return 'hace un momento'; if (s < 3600) return 'hace ' + Math.round(s/60) + ' min'; return 'hace ' + Math.round(s/3600) + ' h'; }
+  function fmtTok(n){ n = Number(n)||0; if (n >= 1e6) return (n/1e6).toFixed(2)+'M'; if (n >= 1e3) return Math.round(n/1e3)+'k'; return String(n); }
+
+  // ---------- Cielo real ----------
+  function sky(){
+    const d = new Date(); const h = d.getHours() + d.getMinutes()/60;
+    const phase = (h>=8&&h<18)?'dia':(h>=6&&h<8)?'amanecer':(h>=18&&h<20)?'atardecer':'noche';
+    const P = {
+      dia:{sky:'#5A7BD0',city:'#3E5AA6',lights:'#3E5AA6',wall:'#2B2F52',trim:'#4A4F80',fa:'#3E365B',fb:'#362F4F',stars:0,clouds:1,body:'#FFD166',bite:'#FFD166',lamps:false,clock:'#7FE0B4'},
+      amanecer:{sky:'#E8A07A',city:'#7A4F6B',lights:'#FFD166',wall:'#2A2D4E',trim:'#4A4F80',fa:'#3A3357',fb:'#332C4A',stars:.3,clouds:.9,body:'#FFE29A',bite:'#FFE29A',lamps:true,clock:'#FFD166'},
+      atardecer:{sky:'#C9637A',city:'#5A3A66',lights:'#FFD166',wall:'#272A49',trim:'#454A78',fa:'#383154',fb:'#312A47',stars:.4,clouds:.6,body:'#FF9E6B',bite:'#FF9E6B',lamps:true,clock:'#FFD166'},
+      noche:{sky:'#141A3A',city:'#0E1228',lights:'#FFD166',wall:'#1E2140',trim:'#363B66',fa:'#2A2545',fb:'#241F3B',stars:1,clouds:0,body:'#E8E9F5',bite:'#141A3A',lamps:true,clock:'#FFD166'}
+    }[phase];
+    let frac = phase==='noche' ? ((h>=20?h-20:h+4)/10) : ((h-6)/14);
+    frac = Math.max(0, Math.min(1, frac));
+    const x = Math.round(8 + frac*100), y = Math.round(18 - Math.sin(frac*Math.PI)*10);
+    $('sky').setAttribute('fill', P.sky);
+    $('stars').setAttribute('opacity', P.stars);
+    $('clouds').setAttribute('opacity', P.clouds);
+    $('city').setAttribute('fill', P.city);
+    $('lights').setAttribute('fill', P.lights);
+    $('body').setAttribute('x', x); $('body').setAttribute('y', y); $('body').setAttribute('fill', P.body);
+    $('bite').setAttribute('x', x+5); $('bite').setAttribute('y', y); $('bite').setAttribute('fill', P.bite);
+    $('wall').style.background = P.wall; $('wall').style.borderColor = P.trim;
+    $('floor').style.background = `repeating-conic-gradient(${P.fa} 0 25%, ${P.fb} 0 50%) 0 0 / 16px 16px`;
+    const t = String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+    $('wallClock').textContent = t; $('wallClock').style.color = P.clock;
+    $('clockTxt').textContent = t;
+    const night = phase==='noche'||phase==='atardecer';
+    $('skyIcon').innerHTML = night
+      ? '<svg width="12" height="12" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><rect x="2" width="3" height="1" fill="#E8E9F5"/><rect x="1" y="1" width="2" height="5" fill="#E8E9F5"/><rect x="2" y="6" width="3" height="1" fill="#E8E9F5"/></svg>'
+      : '<svg width="12" height="12" viewBox="0 0 7 7" shape-rendering="crispEdges" aria-hidden="true"><rect x="2" y="2" width="3" height="3" fill="#FFD166"/><rect x="3" width="1" height="1" fill="#FFD166"/><rect x="3" y="6" width="1" height="1" fill="#FFD166"/><rect y="3" width="1" height="1" fill="#FFD166"/><rect x="6" y="3" width="1" height="1" fill="#FFD166"/></svg>';
+    if (lamps !== P.lamps) { lamps = P.lamps; tiles.forEach(t => t.sig = ''); }
+  }
+
+  // ---------- Medidores ----------
+  function initSegs(id){ const el = $(id); el.innerHTML = '<i></i>'.repeat(12) + (id==='s5' ? '<div class="shine"></div>' : ''); }
+  function meter(segId, lblId, subId, w, baseColor){
+    const cells = $(segId).querySelectorAll('i');
+    if (!w) { cells.forEach(c => c.style.background = '#2B2F52'); $(lblId).textContent = '--'; $(lblId).style.color = ''; $(subId).textContent = 'Usa una sesión para leer tu límite'; return; }
+    const free = Math.max(0, Math.round(100 - w.used));
+    const color = free <= 5 ? '#FF5D5D' : free <= 20 ? '#FF9F43' : baseColor;
+    let n = Math.round(free*12/100); if (free > 0 && n === 0) n = 1;
+    cells.forEach((c,i) => c.style.background = i < n ? color : '#2B2F52');
+    $(lblId).textContent = free + '% libre';
+    $(lblId).style.color = color;
+    $(lblId).className = free <= 5 ? 'fast' : '';
+    $(subId).textContent = w.expired ? 'Ya se reinició' : 'reinicia ' + hhmm(w.resetsAt);
+  }
+
+  // ---------- Personaje ----------
+  function charSVG(a, look, w, h, extraClass){
+    const body = a.state==='waiting' ? 'bounce' : a.state==='error' ? 'shake' : '';
+    const typing = a.state==='working';
+    const shirt = SHIRT[a.family] || SHIRT.Otro;
+    return `<svg class="${extraClass||''} ${body}" width="${w}" height="${h}" viewBox="0 0 12 14" shape-rendering="crispEdges" aria-hidden="true">
+      <rect x="3" y="0" width="6" height="2" fill="${look[0]}"/><rect x="2" y="1" width="1" height="2" fill="${look[0]}"/>
+      <rect x="3" y="2" width="6" height="4" fill="${look[1]}"/>
+      <rect x="4" y="3" width="1" height="1" fill="#1B1D2E"/><rect x="7" y="3" width="1" height="1" fill="#1B1D2E"/>
+      <rect class="lid" x="4" y="3" width="4" height="1" fill="${look[1]}"/>
+      <rect x="2" y="6" width="8" height="5" fill="${shirt}"/><rect x="5" y="6" width="2" height="1" fill="#FFF3E6"/>
+      <g class="${typing?'f1':''}"><rect x="1" y="7" width="1" height="3" fill="${look[1]}"/><rect x="10" y="6" width="1" height="3" fill="${look[1]}"/></g>
+      <g class="${typing?'f2':''}" ${typing?'':'opacity="0"'}><rect x="1" y="6" width="1" height="3" fill="${look[1]}"/><rect x="10" y="7" width="1" height="3" fill="${look[1]}"/></g>
+      <rect x="3" y="11" width="2" height="3" fill="#2A2D44"/><rect x="7" y="11" width="2" height="3" fill="#2A2D44"/></svg>`;
+  }
+
+  function tileHTML(a){
+    const look = LOOKS[hash(a.id) % LOOKS.length];
+    const st = STATE[a.state] || STATE.idle;
+    let over = '';
+    if (a.state==='working') over = `<svg width="30" height="18" viewBox="0 0 30 18" shape-rendering="crispEdges" style="position:absolute;left:31px;top:21px" aria-hidden="true"><g class="scroll"><rect x="3" y="2" width="14" height="2" fill="#7FE0B4"/><rect x="5" y="6" width="20" height="2" fill="#7FE0B4"/><rect x="5" y="10" width="10" height="2" fill="#FFD166"/><rect x="3" y="14" width="18" height="2" fill="#7FE0B4"/><rect x="3" y="18" width="14" height="2" fill="#7FE0B4"/><rect x="5" y="22" width="20" height="2" fill="#7FE0B4"/><rect x="5" y="26" width="10" height="2" fill="#FFD166"/><rect x="3" y="30" width="18" height="2" fill="#7FE0B4"/></g></svg><span class="rise px" style="position:absolute;left:36px;top:6px;font-size:11px;color:#7FE0B4" aria-hidden="true">&lt;/&gt;</span>`;
+    else if (a.state==='waiting') over = `<svg class="blink" width="6" height="14" viewBox="0 0 2 5" shape-rendering="crispEdges" style="position:absolute;left:43px;top:23px" aria-hidden="true"><rect width="2" height="3" fill="#FFD166"/><rect y="4" width="2" height="1" fill="#FFD166"/></svg><span class="bubble bounce" style="background:#FFD166">PERMISO</span>`;
+    else if (a.state==='error') over = `<span class="fast px" style="position:absolute;left:33px;top:24px;width:26px;text-align:center;font-size:11px;font-weight:700;color:#FF7A7A" aria-hidden="true">ERR</span><span class="bubble" style="background:#FF7A7A">ERROR</span>`;
+    else over = `<span class="zz num" style="position:absolute;left:66px;top:44px;font-size:10px;color:#A9AED6" aria-hidden="true">Z</span><span class="zz num" style="position:absolute;left:72px;top:40px;font-size:14px;color:#A9AED6;animation-delay:1.2s" aria-hidden="true">Z</span>`;
+    const lamp = lamps ? `<svg width="34" height="36" viewBox="0 0 34 36" style="position:absolute;left:58px;top:14px" aria-hidden="true"><rect x="16" y="2" width="12" height="6" fill="#4A4F80"/><rect x="21" y="8" width="2" height="22" fill="#4A4F80"/><polygon points="16,8 28,8 34,30 6,30" fill="#FFD166" opacity=".22"/><rect x="18" y="8" width="8" height="2" fill="#FFD166"/></svg>` : '';
+    const shown = Math.min(a.subs.length, 4);
+    let subs = '';
+    for (let k=0;k<shown;k++) subs += `<svg class="hop" width="13" height="15" viewBox="0 0 12 14" shape-rendering="crispEdges" style="animation-delay:${(k*.15).toFixed(2)}s" aria-hidden="true"><rect x="3" y="0" width="6" height="2" fill="#E8E9F5"/><rect x="3" y="2" width="6" height="4" fill="#F2C9A0"/><rect x="2" y="6" width="8" height="5" fill="${SUB[a.family]||'#fff'}"/><rect x="3" y="11" width="2" height="3" fill="#2A2D44"/><rect x="7" y="11" width="2" height="3" fill="#2A2D44"/></svg>`;
+    if (a.subs.length > 4) subs += `<span class="px" style="font-size:11px;color:#FFD166">+${a.subs.length-4}</span>`;
+    return `<div class="in">
+      <svg width="92" height="138" viewBox="0 0 92 138" shape-rendering="crispEdges" style="position:absolute;left:0;top:0" aria-hidden="true">
+        <rect x="28" y="18" width="36" height="24" fill="#11121C"/><rect x="31" y="21" width="30" height="18" fill="${st.screen}"/><rect x="43" y="42" width="6" height="4" fill="#11121C"/>
+        <rect x="6" y="46" width="80" height="10" fill="#9B6A45"/><rect x="6" y="56" width="80" height="14" fill="#7A4F33"/><rect x="10" y="42" width="10" height="4" fill="#E8E9F5"/></svg>
+      ${lamp}${over}
+      <div class="who" style="position:absolute;left:28px;top:58px">${charSVG(a, look, 36, 42)}</div>
+      <div style="position:absolute;left:2px;right:2px;top:101px;height:18px;display:flex;justify-content:center;align-items:flex-end;gap:2px">${subs}</div>
+      <span class="plate">${esc(a.name)}</span></div>`;
+  }
+
+  function lounge(){
+    return `<div class="tile" aria-hidden="true" style="cursor:default"><div class="in"><svg width="92" height="138" viewBox="0 0 92 138" shape-rendering="crispEdges" style="position:absolute;left:0;top:0">
+      <rect x="58" y="24" width="30" height="54" fill="#4A4F80"/><rect x="62" y="30" width="22" height="12" fill="#11121C"/><rect class="blink" x="64" y="32" width="4" height="4" fill="#D97757"/><rect x="66" y="52" width="14" height="12" fill="#FFF3E6"/>
+      <rect class="steam" x="70" y="44" width="2" height="4" fill="#C9CBE0"/><rect class="steam" x="74" y="42" width="2" height="4" fill="#C9CBE0" style="animation-delay:.6s"/>
+      <g class="sway"><rect x="6" y="40" width="10" height="28" fill="#3E8E5A"/><rect x="16" y="30" width="12" height="38" fill="#57B079"/><rect x="10" y="24" width="8" height="14" fill="#57B079"/><rect x="24" y="44" width="8" height="16" fill="#3E8E5A"/></g>
+      <rect x="8" y="68" width="22" height="22" fill="#7A4F33"/><rect x="8" y="68" width="22" height="4" fill="#9B6A45"/>
+      <rect x="34" y="106" width="22" height="10" fill="#E8A35C"/><rect x="30" y="102" width="8" height="8" fill="#E8A35C"/><rect x="30" y="100" width="2" height="2" fill="#E8A35C"/><rect x="36" y="100" width="2" height="2" fill="#E8A35C"/><rect x="32" y="105" width="4" height="1" fill="#1B1D2E"/><rect x="42" y="108" width="8" height="2" fill="#C47F3E"/>
+      <rect class="sf1" x="56" y="110" width="8" height="3" fill="#E8A35C"/><rect class="sf2" x="56" y="106" width="3" height="6" fill="#E8A35C"/></svg>
+      <span class="plate" style="background:transparent;color:#A9AED6">SALA</span></div></div>`;
+  }
+
+  function renderOffice(){
+    const agents = data.agents || [];
+    $('empty').style.display = agents.length ? 'none' : 'flex';
+    $('grid').style.display = agents.length ? 'grid' : 'none';
+    const ids = new Set(agents.map(a => a.id));
+    for (const [id, t] of tiles) if (!ids.has(id)) {
+      // El agente se levanta y sale caminando antes de desaparecer.
+      tiles.delete(id);
+      t.el.classList.remove('on', 'arriving');
+      t.el.classList.add('leaving');
+      t.el.insertAdjacentHTML('beforeend', '<span class="bye">ADIÓS</span>');
+      setTimeout(() => t.el.remove(), 2400);
+      if (sel === id) sel = null;
+    }
+    for (const a of agents) {
+      let t = tiles.get(a.id);
+      if (!t) {
+        const el = document.createElement('button');
+        el.className = 'tile';
+        el.addEventListener('click', () => { sel = (sel === a.id && mode === 'compact') ? null : a.id; renderSelection(); });
+        el.addEventListener('dblclick', () => post('focus', {id: a.id}));
+        t = {el, sig: ''}; tiles.set(a.id, t);
+        if (firstOfficeRender === false) { el.classList.add('arriving'); setTimeout(() => el.classList.remove('arriving'), 1300); }
+      }
+      const sig = [a.state, a.name, a.family, a.subs.length, lamps].join('|');
+      if (sig !== t.sig) { t.el.innerHTML = tileHTML(a); t.sig = sig; }
+      t.el.setAttribute('aria-label', `${a.name}, ${a.model}, ${(STATE[a.state]||STATE.idle).label.toLowerCase()}. Doble clic para ir a la terminal`);
+      t.el.classList.toggle('on', sel === a.id);
+    }
+    firstOfficeRender = false;
+    const order = agents.map(a => a.id).join(',');
+    if (order !== lastOrder) {
+      lastOrder = order;
+      const g = $('grid');
+      for (const a of agents) g.appendChild(tiles.get(a.id).el);
+      g.querySelectorAll('.tile.leaving').forEach(el => g.appendChild(el));
+      if (!g.querySelector('.lounge')) { const w = document.createElement('div'); w.className = 'lounge'; w.style.display = 'contents'; w.innerHTML = lounge(); g.appendChild(w); }
+      else g.appendChild(g.querySelector('.lounge'));
+    }
+  }
+
+  function selected(){ return (data && data.agents || []).find(a => a.id === sel) || null; }
+
+  function ctaFor(a){
+    const app = (a.app || 'la terminal').toUpperCase();
+    if (a.state === 'waiting') return 'APROBAR EN ' + app;
+    if (a.state === 'error') return 'VER ERROR EN ' + app;
+    return 'IR A ' + app;
+  }
+
+  function renderSelection(){
+    tiles.forEach((t, id) => t.el.classList.toggle('on', sel === id));
+    const a = selected();
+    // Globo (modo compacto): la estructura (y sus botones) solo se rehace al cambiar de agente o de estado;
+    // el texto se actualiza en su lugar para que un clic nunca caiga en un botón que se está redibujando.
+    const popSig = a ? JSON.stringify([a.id, a.state, a.family, a.app]) : '';
+    if (popSig !== lastPop) {
+      lastPop = popSig;
+      if (!a) $('pop').innerHTML = '';
+      else {
+        const st = STATE[a.state] || STATE.idle;
+        $('pop').innerHTML = `<div class="pop">
+          <div class="row" style="gap:8px"><span class="num js-name" style="font-size:14px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
+            <span class="mchip js-model" style="background:${SHIRT[a.family]||SHIRT.Otro}"></span>
+            <span class="px" style="font-size:11px;color:${st.ink}">${st.label}</span>
+            <button class="ibtn" data-act="closePop" aria-label="Cerrar" style="width:26px;height:26px">×</button></div>
+          <div class="now"><b>AHORA: </b><span class="js-now"></span></div>
+          <div class="meta js-meta"></div>
+          <div class="row" style="gap:6px"><button class="btn gold js-cta" data-act="focus" style="flex:1"></button><button class="btn" data-act="history" style="width:96px">HISTORIAL</button><button class="btn" data-act="expand" style="width:56px">MÁS</button></div></div>`;
+      }
+    }
+    if (a) {
+      const P = $('pop');
+      setText(P.querySelector('.js-name'), a.name);
+      setText(P.querySelector('.js-model'), a.model);
+      setText(P.querySelector('.js-now'), a.now);
+      setText(P.querySelector('.js-meta'), (a.subs.length ? a.subs.length + ' subagentes: ' + a.subs.slice(0,3).join(', ') + (a.subs.length>3?'…':'') : 'Sin subagentes') + (a.app ? ' · ' + a.app : '') + (a.ctx!=null ? ' · contexto ' + a.ctx + '%' : ''));
+      setText(P.querySelector('.js-cta'), ctaFor(a));
+    }
+    // Ficha completa (modo expandido): el botón vive fuera del bloque que se redibuja.
+    const dSig = a ? JSON.stringify([a.id, a.state, a.now, a.subs, a.model, a.app, a.ctx, a.tokens, a.log, a.cwd]) : 'none';
+    if (dSig !== lastDetail) {
+      lastDetail = dSig;
+      if (!a) { $('detailBody').innerHTML = `<div class="now" style="color:#A9AED6">Toca un agente para ver qué está haciendo. Doble clic te lleva directo a su terminal.</div>`; }
+      else {
+        const st = STATE[a.state] || STATE.idle;
+        const look = LOOKS[hash(a.id) % LOOKS.length];
+        const log = a.log.length ? a.log.map(l => `<div><span>${hhmm(l.t)}</span><span>${esc(l.x)}</span></div>`).join('') : `<div><span>—</span><span>${a.tracked ? 'Sin actividad registrada aún' : 'Sin actividad hasta su siguiente acción'}</span></div>`;
+        $('detailBody').innerHTML = `
+          <div class="row" style="gap:12px;align-items:flex-start">
+            <div style="width:64px;height:64px;flex:none;background:#2B2F52;border:2px solid #4A4F80;display:flex;align-items:flex-end;justify-content:center;overflow:hidden">${charSVG(a, look, 44, 52)}</div>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+              <div class="row" style="gap:6px;justify-content:space-between"><span class="num" style="font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.name)}</span><span class="mchip" style="background:${SHIRT[a.family]||SHIRT.Otro}">${esc(a.model)} · ${fmtTok(a.tokens)} hoy</span></div>
+              <span class="px" style="font-size:11px;color:${st.ink}">${st.label}${a.app ? ' · ' + esc(a.app) : ''}</span>
+              <div class="now"><b>AHORA: </b>${esc(a.now)}<span class="blink" style="color:#FFD166"> ▌</span></div>
+            </div></div>
+          <div class="log">${log}
+            <div><span>SUB</span><span>${a.subs.length ? a.subs.length + ' activos: ' + esc(a.subs.join(', ')) : 'Sin subagentes'}</span></div>
+            <div style="align-items:center"><span>CTX</span><div class="ctxbar"><i style="width:${a.ctx||0}%"></i></div><span style="width:36px;text-align:right">${a.ctx!=null ? a.ctx+'%' : '--'}</span></div>
+            <div><span>DIR</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.cwd)}</span></div>
+          </div>`;
+      }
+    }
+    $('detailBtns').style.display = a ? 'flex' : 'none';
+    if (a) setText($('detailBtn'), ctaFor(a));
+  }
+
+  function renderHistory(){
+    if (!histId) return;
+    const a = (data.agents || []).find(x => x.id === histId);
+    const sig = a ? JSON.stringify([a.id, a.history, a.state, a.tokens, a.subs]) : 'gone';
+    if (sig === lastHist) return;
+    lastHist = sig;
+    if (!a) {
+      $('histSub').textContent = 'Esta sesión ya se cerró';
+      $('histBody').innerHTML = '<div class="sect"><p>La sesión terminó. Su historial se borra al cerrarse.</p></div>';
+      return;
+    }
+    const st = STATE[a.state] || STATE.idle;
+    $('histSub').textContent = a.name + ' · ' + a.model + (a.app ? ' · ' + a.app : '');
+    const items = (a.history || []);
+    // Agrupamos por hora para leerlo de un vistazo.
+    const groups = [];
+    for (const l of items) {
+      const d = new Date(l.t * 1000);
+      const key = String(d.getHours()).padStart(2,'0') + ':00';
+      if (!groups.length || groups[groups.length-1].key !== key) groups.push({key, items: []});
+      groups[groups.length-1].items.push(l);
+    }
+    const list = groups.length
+      ? groups.map(g => `<div class="label">${g.key}</div><div class="hist">${g.items.map(l => `<div><span>${hhmm(l.t)}</span><span>${esc(l.x)}</span></div>`).join('')}</div>`).join('')
+      : `<div class="sect"><p>${a.tracked ? 'Aún no hay actividad registrada en esta sesión.' : 'Esta sesión se abrió antes de conectar Claude HQ. Su actividad aparecerá desde su siguiente acción.'}</p></div>`;
+    $('histBody').innerHTML = `
+      <div class="sect">
+        <div class="row" style="justify-content:space-between;gap:8px"><span class="num" style="font-size:15px">${esc(a.name)}</span><span class="px" style="font-size:11px;color:${st.ink}">${st.label}</span></div>
+        <div class="row" style="gap:16px;flex-wrap:wrap">
+          <div><div class="label">INICIO</div><div class="num" style="font-size:14px">${a.startedAt ? hhmm(a.startedAt) : '—'}</div></div>
+          <div><div class="label">TOKENS HOY</div><div class="num" style="font-size:14px">${fmtTok(a.tokens)}</div></div>
+          <div><div class="label">CONTEXTO</div><div class="num" style="font-size:14px">${a.ctx != null ? a.ctx + '%' : '--'}</div></div>
+          <div><div class="label">SUBAGENTES</div><div class="num" style="font-size:14px">${a.subs.length}</div></div>
+        </div>
+        <p style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(a.cwd)}</p>
+        <button class="btn gold" data-act="focusHist">${esc(ctaFor(a))}</button>
+      </div>
+      ${list}`;
+  }
+
+  function setText(el, t){ if (el && el.textContent !== t) el.textContent = t; }
+
+  function renderExpanded(){
+    const mp = data.settingsModel + '|' + data.settingsPerm;
+    if ($('models').dataset.sig !== mp) { $('models').dataset.sig = mp;
+    $('models').innerHTML = ['Opus','Sonnet','Haiku'].map(m => `<button class="btn ${data.settingsModel===m?'sel':''}" data-act="setModel" data-v="${m}" aria-pressed="${data.settingsModel===m}">${m}</button>`).join('');
+    $('perms').innerHTML = PERMS.map(([v,l]) => `<button class="btn ${data.settingsPerm===v?'sel':''}" data-act="setPerm" data-v="${v}" aria-pressed="${data.settingsPerm===v}">${l}</button>`).join(''); }
+    const api = data.api;
+    let html;
+    if (!data.apiConfigured) html = `<h3>API de Anthropic</h3><p>Conecta una Admin API key para ver tu gasto del mes y los tokens de la API.</p><button class="btn" data-act="openSettings">CONECTAR KEY</button>`;
+    else if (!api) html = `<h3>API de Anthropic</h3><p>Consultando…</p>`;
+    else if (api.error) html = `<h3>API de Anthropic</h3><p style="color:#FF9A9A">${esc(api.error)}</p>`;
+    else {
+      const bm = (api.byModel||'').split(',').filter(Boolean).map(s => { const [k,v] = s.split(':'); return `<span style="color:${SHIRT[k]||'#E8E9F5'}">${esc(k)} ${fmtTok(v)}</span>`; }).join(' · ');
+      html = `<h3>API de Anthropic · este mes</h3><div class="row" style="gap:16px"><div><div class="label">GASTO</div><div class="num" style="font-size:18px">${api.monthUSD ? '$' + esc(api.monthUSD) : '—'}</div></div><div><div class="label">HOY</div><div class="num" style="font-size:18px">${fmtTok(api.todayTokens)}</div></div><div><div class="label">MES</div><div class="num" style="font-size:18px">${fmtTok(api.monthTokens)}</div></div></div><p>${bm || 'Sin uso por modelo'}</p>`;
+    }
+    if ($('apiCard').dataset.html !== html) { $('apiCard').innerHTML = html; $('apiCard').dataset.html = html; }
+    const items = (data.ticker||[]).map(t => `<span><b style="color:${SHIRT[t.family]||'#E8E9F5'};font-weight:400">${hhmm(t.t)}</b> ${esc(t.who)} · ${esc(t.x)}</span>`).join('');
+    const tk = items || '<span>Sin actividad reciente</span>';
+    if (tk !== lastTicker) { lastTicker = tk; $('ticker').innerHTML = tk + tk; }
+  }
+
+  function renderBanners(){
+    const out = [];
+    const f = data.fiveHour, w = data.sevenDay;
+    const worst = [f && !f.expired ? ['5 h', f] : null, w && !w.expired ? ['semanal', w] : null].filter(Boolean).sort((a,b) => b[1].used - a[1].used)[0];
+    if (worst && worst[1].used >= 95) out.push(`<button class="banner b-crit fast" data-act="none"><span>Solo te queda ${Math.max(0,Math.round(100-worst[1].used))}% del límite ${worst[0]} · reinicia ${hhmm(worst[1].resetsAt)}</span><span class="tag">!</span></button>`);
+    else if (worst && worst[1].used >= 80) out.push(`<button class="banner b-warn" data-act="none"><span>Llevas ${Math.round(worst[1].used)}% del límite ${worst[0]}</span><span class="tag">!</span></button>`);
+    const waiting = (data.agents||[]).filter(a => a.state === 'waiting');
+    if (waiting.length) out.push(`<button class="banner b-wait" data-act="pick" data-id="${esc(waiting[0].id)}"><span>${waiting.length > 1 ? waiting.length + ' agentes esperan tu permiso' : esc(waiting[0].name) + ' necesita tu permiso'}</span><span class="tag">VER</span></button>`);
+    if (data.installed && data.needsUpdate) out.push(`<button class="banner b-info" data-act="install"><span>Hay una mejora para la conexión con Claude Code (evita errores al actualizar la app)</span><span class="tag">ACTUALIZAR</span></button>`);
+    if (!data.installed) out.push(`<button class="banner b-info" data-act="install"><span>Conecta con Claude Code para ver qué hace cada agente y tus límites</span><span class="tag">CONECTAR</span></button>`);
+    const html = out.join('');
+    if ($('banners').dataset.html !== html) { $('banners').innerHTML = html; $('banners').dataset.html = html; }
+    $('banners').style.display = html ? 'flex' : 'none';
+    $('banners').style.flexDirection = 'column'; $('banners').style.gap = '6px';
+  }
+
+  function renderSettings(){
+    const acc = data.account;
+    let a;
+    if (data.loggedIn && acc) a = `<h3>Cuenta de Claude</h3><p><b style="color:#E8E9F5">${esc(acc.email)}</b><br>${esc(acc.org)} · Plan ${esc(acc.plan || '—')}</p><button class="btn" data-act="logout">CERRAR SESIÓN</button>`;
+    else if (data.loggedIn === false) a = `<h3>Cuenta de Claude</h3><p>No has iniciado sesión.</p><button class="btn gold" data-act="login">INICIAR SESIÓN CON CLAUDE</button>`;
+    else a = `<h3>Cuenta de Claude</h3><p>Revisando tu sesión…</p>`;
+    if ($('acctSect').dataset.html !== a) { $('acctSect').innerHTML = a; $('acctSect').dataset.html = a; }
+    const i = data.installed
+      ? `<h3>Conexión con Claude Code</h3><p>Conectado. Los hooks y la status line de Claude HQ están activos (tu status line anterior se conserva).</p><button class="btn" data-act="uninstall">DESCONECTAR</button>`
+      : `<h3>Conexión con Claude Code</h3><p>Sin conectar. Ves tus sesiones, pero no qué hace cada una ni tus límites.</p><button class="btn gold" data-act="install">CONECTAR</button>`;
+    if ($('instSect').dataset.html !== i) { $('instSect').innerHTML = i; $('instSect').dataset.html = i; }
+    $('apiState').textContent = data.apiConfigured ? 'Hay una key guardada en el Llavero.' : 'No hay key guardada.';
+    $('alertsBtn').textContent = data.alertsEnabled ? 'ON' : 'OFF';
+    $('alertsBtn').className = 'btn ' + (data.alertsEnabled ? 'sel' : '');
+    $('soundBtn').textContent = data.soundEnabled ? 'ON' : 'OFF';
+    $('soundBtn').className = 'btn ' + (data.soundEnabled ? 'sel' : '');
+    $('gate').classList.toggle('show', data.loggedIn === false);
+  }
+
+  function render(){
+    if (!data) return;
+    sky();
+    const agents = data.agents || [];
+    const subs = agents.reduce((n,a) => n + a.subs.length, 0);
+    const acc = data.account && data.loggedIn ? ` · ${data.account.plan || ''}` : '';
+    $('subtitle').textContent = `${agents.length} agentes · ${subs} subagentes${acc}`;
+    meter('s5','l5','r5', data.fiveHour, '#FFD166');
+    meter('sw','lw','rw', data.sevenDay, '#7FE0B4');
+    if (data.limitsUpdatedAt && Date.now()/1000 - data.limitsUpdatedAt > 600) {
+      $('r5').textContent += ' · dato ' + ago(data.limitsUpdatedAt);
+    }
+    renderBanners();
+    renderOffice();
+    if (sel && !selected()) sel = null;
+    renderSelection();
+    renderExpanded();
+    renderSettings();
+    renderHistory();
+    const t = data.tokensToday || {};
+    $('tokToday').textContent = fmtTok(t.headline) + ' tokens hoy';
+    $('tokSub').textContent = (data.byModelToday||[]).slice(0,3).map(m => m.family + ' ' + fmtTok(m.tokens)).join(' · ') || 'Entrada + salida + escritura de caché';
+  }
+
+  // ---------- Eventos ----------
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    const act = b.dataset.act;
+    switch (act) {
+      case 'focus': if (sel) post('focus', {id: sel}); break;
+      case 'pick': sel = b.dataset.id; if (mode === 'compact') renderSelection(); else renderSelection(); break;
+      case 'closePop': sel = null; renderSelection(); break;
+      case 'history': if (sel) { histId = sel; lastHist = ''; renderHistory(); $('history').classList.add('show'); } break;
+      case 'closeHistory': $('history').classList.remove('show'); histId = null; break;
+      case 'focusHist': if (histId) post('focus', {id: histId}); break;
+      case 'sound': post('sound', {value: !(data && data.soundEnabled)}); break;
+      case 'expand': setMode('expanded', true); break;
+      case 'newSession': post('newSession'); break;
+      case 'setModel': post('setModel', {model: b.dataset.v}); break;
+      case 'setPerm': post('setPerm', {mode: b.dataset.v}); break;
+      case 'openSettings': $('settings').classList.add('show'); break;
+      case 'closeSettings': $('settings').classList.remove('show'); break;
+      case 'login': post('login'); $('gateHint').textContent = 'Esperando que completes el login en el navegador…'; break;
+      case 'logout': post('logout'); break;
+      case 'install': post('install'); break;
+      case 'uninstall': post('uninstall'); break;
+      case 'saveKey': { const v = $('keyIn').value.trim(); if (v) { post('saveKey', {key: v}); $('keyIn').value = ''; } break; }
+      case 'clearKey': post('clearKey'); break;
+      case 'console': post('openURL', {url: 'https://console.anthropic.com/settings/admin-keys'}); break;
+      case 'alerts': post('alerts', {value: !(data && data.alertsEnabled)}); break;
+      case 'quit': post('quit'); break;
+      case 'dw': post('desktopWidget', {value: b.dataset.v}); break;
+    }
+  });
+  $('btnExpand').addEventListener('click', () => setMode(mode === 'compact' ? 'expanded' : 'compact', true));
+  $('btnPin').addEventListener('click', () => { pinned = !pinned; $('btnPin').classList.toggle('on', pinned); post('pin', {value: pinned}); });
+  $('btnSettings').addEventListener('click', () => $('settings').classList.add('show'));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { if ($('history').classList.contains('show')) { $('history').classList.remove('show'); histId = null; } else if ($('settings').classList.contains('show')) $('settings').classList.remove('show'); else { sel = null; renderSelection(); } } });
+
+  function setMode(m, notify){
+    mode = m;
+    $('app').className = 'mode-' + m;
+    if (notify) post('mode', {value: m});
+    lastPop = ''; lastDetail = '';
+    renderSelection();
+  }
+
+  let toastTimer;
+  window.hq = {
+    update(d){ data = d; window.__hqLast = d; render(); },
+    setMode(m, p){ pinned = p; $('btnPin').classList.toggle('on', p); setMode(m, false); },
+    toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2800); }
+  };
+  initSegs('s5'); initSegs('sw');
+  sky(); setInterval(sky, 30000);
+})();
+</script>
+</body>
+</html>
