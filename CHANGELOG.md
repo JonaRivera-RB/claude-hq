@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.1 — 2026-11-10
+
+- Ícono propio y app en el Dock: clic en el ícono vuelve a abrir la oficina aunque cierres la ventana.
+- Cerrar la ventana ya no cierra la app.
+
 ## 1.0.0 — 2026-11-10
 
 Primera versión.

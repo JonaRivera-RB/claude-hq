@@ -9,7 +9,7 @@ settings:
     DEVELOPMENT_TEAM: T594C3YA28
     CODE_SIGN_STYLE: Automatic
     CODE_SIGN_IDENTITY: "Apple Development"
-    MARKETING_VERSION: "1.0.0"
+    MARKETING_VERSION: "1.0.1"
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_VERSION: "5.0"
     ENABLE_HARDENED_RUNTIME: NO
@@ -21,6 +21,10 @@ targets:
     platform: macOS
     sources:
       - path: App
+        excludes:
+          - Resources/**
+      - path: App/Resources/AppIcon.icns
+        buildPhase: resources
       - path: Shared
       - path: web
         type: folder
@@ -35,7 +39,8 @@ targets:
         CFBundleExecutable: "$(EXECUTABLE_NAME)"
         CFBundleIdentifier: "$(PRODUCT_BUNDLE_IDENTIFIER)"
         CFBundlePackageType: APPL
-        LSUIElement: true
+        LSUIElement: false
+        CFBundleIconFile: AppIcon
         LSMinimumSystemVersion: "14.0"
         NSAppleEventsUsageDescription: "Claude HQ usa esto para llevarte a la ventana de Terminal o iTerm2 donde corre cada sesión de Claude Code."
         NSHumanReadableCopyright: "Uso personal"

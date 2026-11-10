@@ -67,6 +67,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         showPanel()
     }
 
+    /// Clic en el ícono del Dock: vuelve a mostrar la oficina aunque hayas cerrado la ventana.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        showPanel()
+        return true
+    }
+
+    /// Cerrar la ventana no cierra la app (sigue en la barra de menú y en el Dock).
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
+
     // MARK: Barra de menú
 
     private func setupStatusItem() {

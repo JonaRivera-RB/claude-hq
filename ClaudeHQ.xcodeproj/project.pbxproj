@@ -22,6 +22,7 @@
 		A8961B389C7932935AD91394 /* Services.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BE639B7251AF5BD2D44CBBF /* Services.swift */; };
 		ABE8CACF7E9A4C62C404ED16 /* HookHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ED7982A2E3B801CE93523A7 /* HookHandler.swift */; };
 		B5DD35743879F817CC65CDD2 /* DataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7BE92A067FB9765FA827736 /* DataStore.swift */; };
+		BEDDB4ED93905E394B134074 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 5E86EFE993381C68CF248F84 /* AppIcon.icns */; };
 		C3752B0F718E2A412C47497B /* TerminalFocus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C4E600072D55E47CFB15BD6 /* TerminalFocus.swift */; };
 		CBDD19E0AFFF9676AD10AD2A /* WidgetViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = D365BB98A05BEDE125B4C8BE /* WidgetViews.swift */; };
 		FEE9469BAD2D10A95A11BFFA /* Installer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBE81FC6881FA0E51BE53392 /* Installer.swift */; };
@@ -56,6 +57,7 @@
 		1C4E600072D55E47CFB15BD6 /* TerminalFocus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalFocus.swift; sourceTree = "<group>"; };
 		1D532CE7C80076E1F830410F /* ClaudeHQ.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClaudeHQ.entitlements; sourceTree = "<group>"; };
 		45387CD59BB91927D91D457E /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		5E86EFE993381C68CF248F84 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
 		6BE639B7251AF5BD2D44CBBF /* Services.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services.swift; sourceTree = "<group>"; };
 		895B086423BDA30B1B1B8309 /* ClaudeHQ.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClaudeHQ.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8A8C67189907ACDCB1098CB8 /* DebugSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugSnapshot.swift; sourceTree = "<group>"; };
@@ -101,6 +103,7 @@
 				A22D851F103E82ADFE8057BA /* StatuslineHandler.swift */,
 				1C4E600072D55E47CFB15BD6 /* TerminalFocus.swift */,
 				B151D456EAF0BF8DBA40F39A /* TranscriptScanner.swift */,
+				8ECD92372D97D6D2A883DF9F /* Resources */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -113,6 +116,14 @@
 				03661716219094A6193C7DD4 /* Info.plist */,
 			);
 			path = Widget;
+			sourceTree = "<group>";
+		};
+		8ECD92372D97D6D2A883DF9F /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				5E86EFE993381C68CF248F84 /* AppIcon.icns */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		AC13C12BA9524FBE9CBA2698 /* Products */ = {
@@ -219,6 +230,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BEDDB4ED93905E394B134074 /* AppIcon.icns in Resources */,
 				0EF76F1A4807B1B4BA2B3866 /* web in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -337,7 +349,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -440,7 +452,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
