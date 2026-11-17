@@ -13,9 +13,18 @@ fi
 echo "→ Generando proyecto Xcode…"
 xcodegen generate --quiet
 
+mkdir -p build
 echo "→ Compilando…"
-xcodebuild -project ClaudeHQ.xcodeproj -scheme ClaudeHQ -configuration Release \
-  -derivedDataPath build/dd -destination 'platform=macOS,arch=arm64' -allowProvisioningUpdates build -quiet
+BUILD_ARGS=(-project ClaudeHQ.xcodeproj -scheme ClaudeHQ -configuration Release
+  -derivedDataPath build/dd -destination "platform=macOS,arch=$(uname -m)")
+if ! xcodebuild "${BUILD_ARGS[@]}" -allowProvisioningUpdates build -quiet > build/xcodebuild.log 2>&1; then
+  # Sin acceso al equipo de desarrollo de project.yml (otra Mac u otra cuenta de Apple):
+  # firma local ad-hoc. La app funciona igual; solo el widget nativo de WidgetKit no carga.
+  echo "  (sin el equipo de firma del proyecto: compilando con firma local)"
+  xcodebuild "${BUILD_ARGS[@]}" CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= \
+    PROVISIONING_PROFILE_SPECIFIER= CODE_SIGN_ENTITLEMENTS= build -quiet > build/xcodebuild.log 2>&1 \
+    || { tail -30 build/xcodebuild.log; echo "✗ Falló la compilación. Log completo: $PWD/build/xcodebuild.log" >&2; exit 1; }
+fi
 
 APP=build/dd/Build/Products/Release/ClaudeHQ.app
 DEST="$HOME/Applications/ClaudeHQ.app"

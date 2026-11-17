@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.2 — 2026-11-16
+
+- Instalador de un solo comando (`scripts/install.sh`): clona y compila en `~/.claude-hq/src`, sin escribir nada en la carpeta donde se ejecuta.
+- `AGENTS.md`: instrucciones para que un agente de IA instale la app sin clonarla dentro del proyecto del usuario.
+- `build.sh` compila con firma local si la Mac no tiene acceso al equipo de desarrollo del proyecto.
+
 ## 1.0.1 — 2026-11-10
 
 - Ícono propio y app en el Dock: clic en el ícono vuelve a abrir la oficina aunque cierres la ventana.

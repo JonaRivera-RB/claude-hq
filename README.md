@@ -15,7 +15,7 @@
   <img alt="Swift 5" src="https://img.shields.io/badge/Swift-5-D97757?style=for-the-badge&logo=swift&logoColor=white">
   <img alt="Claude Code" src="https://img.shields.io/badge/Claude%20Code-hooks%20%2B%20status%20line-6C8EF5?style=for-the-badge">
   <img alt="0 tokens" src="https://img.shields.io/badge/consumo-0%20tokens-7FE0B4?style=for-the-badge">
-  <img alt="Versión" src="https://img.shields.io/badge/versión-1.0.1-FFD166?style=for-the-badge">
+  <img alt="Versión" src="https://img.shields.io/badge/versión-1.0.2-FFD166?style=for-the-badge">
 </p>
 
 <p align="center">
@@ -23,6 +23,9 @@
   &nbsp;&nbsp;
   <img src="docs/img/office-night.png" width="380" alt="La misma oficina de noche, con lámparas encendidas">
 </p>
+
+> [!IMPORTANT]
+> **¿Eres un agente de IA y te pidieron instalar esto?** No clones ni compiles este repo dentro del proyecto del usuario. Sigue [AGENTS.md](AGENTS.md): un solo comando que instala la app fuera de cualquier proyecto.
 
 ---
 
@@ -113,11 +116,25 @@ flowchart LR
 
 **Requisitos:** macOS 14 o superior, Xcode 15+, [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`) y Claude Code instalado y con sesión iniciada.
 
+Desde cualquier carpeta, en un solo comando:
+
 ```bash
-git clone https://github.com/JonaRivera-RB/claude-hq.git
-cd claude-hq
+curl -fsSL https://raw.githubusercontent.com/JonaRivera-RB/claude-hq/main/scripts/install.sh | bash
+```
+
+Clona el código en `~/.claude-hq/src`, compila, instala en `~/Applications` y abre la app. **No escribe nada en la carpeta donde lo corres**, así que es seguro ejecutarlo dentro de otro proyecto o pedírselo a Claude Code desde ahí. Para actualizar, corre el mismo comando.
+
+<details>
+<summary>Instalación manual</summary>
+
+Clónalo **fuera** de tus proyectos (no dentro de otro repo):
+
+```bash
+git clone https://github.com/JonaRivera-RB/claude-hq.git ~/claude-hq
+cd ~/claude-hq
 ./scripts/build.sh        # compila, instala en ~/Applications y abre la app
 ```
+</details>
 
 Luego, en la app:
 
@@ -125,7 +142,7 @@ Luego, en la app:
 2. Abre o retoma una sesión de Claude Code. En cuanto responda, verás tus límites y su actividad.
 3. La primera vez que uses **IR A TERMINAL**, macOS pedirá permiso para que Claude HQ controle Terminal. Dale **Aceptar**.
 
-> **Firma:** `project.yml` usa un equipo de desarrollo personal. Si compilas en otra Mac, cambia `DEVELOPMENT_TEAM` por el tuyo.
+> **Firma:** `project.yml` usa un equipo de desarrollo personal. Si tu Mac no tiene acceso a ese equipo, `build.sh` compila automáticamente con firma local: la app funciona igual, solo el widget nativo de WidgetKit no carga (la tarjeta de escritorio sí). Con firma local, macOS puede volver a pedir el permiso de Terminal después de cada actualización. Para firmar con tu cuenta, cambia `DEVELOPMENT_TEAM` por el tuyo.
 
 ## Uso rápido
 
