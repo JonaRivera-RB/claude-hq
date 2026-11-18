@@ -20,7 +20,7 @@ command -v claude >/dev/null     || echo "⚠ No encontré 'claude' en el PATH. 
 
 mkdir -p "$(dirname "$SRC")"
 if [ -d "$SRC/.git" ]; then
-  echo "→ Actualizando código en $SRC…"
+  echo "→ Actualizando código en ${SRC}…"
   # Esta carpeta es del instalador: se alinea con main aunque la compilación haya generado archivos.
   git -C "$SRC" fetch --depth 1 --quiet origin main
   git -C "$SRC" reset --hard --quiet FETCH_HEAD
@@ -30,7 +30,7 @@ else
     echo "→ $SRC existe pero no es un repo de git; lo muevo a $BAK"
     mv "$SRC" "$BAK"
   fi
-  echo "→ Descargando código en $SRC…"
+  echo "→ Descargando código en ${SRC}…"
   git clone --depth 1 --quiet "$REPO" "$SRC"
 fi
 
