@@ -207,7 +207,7 @@ enum ClaudeSettings {
     }
 
     static func setModel(_ family: String) throws {
-        var s = Installer.readSettings()
+        var s = try Installer.readSettingsForWrite()
         let cur = (s["model"] as? String) ?? ""
         let keep1m = cur.contains("[1m]") && family != "haiku"
         s["model"] = family + (keep1m ? "[1m]" : "")
@@ -215,7 +215,7 @@ enum ClaudeSettings {
     }
 
     static func setPermissionMode(_ mode: String) throws {
-        var s = Installer.readSettings()
+        var s = try Installer.readSettingsForWrite()
         var p = s["permissions"] as? [String: Any] ?? [:]
         if mode == "default" { p.removeValue(forKey: "defaultMode") } else { p["defaultMode"] = mode }
         s["permissions"] = p

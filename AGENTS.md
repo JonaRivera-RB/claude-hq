@@ -2,6 +2,8 @@
 
 Si un usuario te pasó la liga de este repo y te pidió **«instálalo»**, **«instala este proyecto»** o algo parecido, sigue esto.
 
+> Claude HQ es un proyecto independiente de código abierto (MIT), no afiliado ni respaldado por Anthropic.
+
 ## Lo importante
 
 Claude HQ es una **app de macOS independiente**, no una dependencia ni una librería para el proyecto del usuario.
@@ -20,7 +22,7 @@ Claude HQ es una **app de macOS independiente**, no una dependencia ni una libre
 
    Requiere macOS 14+, Xcode 15+ y XcodeGen (`brew install xcodegen`). Si falta algo, el script lo dice; avísale al usuario en lugar de improvisar otra instalación.
 
-2. Conéctalo a Claude Code. Agrega hooks silenciosos y envuelve la status line en `~/.claude/settings.json`. Antes guarda un respaldo en `~/.claude-hq/`:
+2. **Confirma con el usuario antes de este paso.** Explícale que modifica su configuración global `~/.claude/settings.json`: agrega hooks silenciosos y envuelve su status line (la actual se conserva). Antes guarda un respaldo en `~/.claude-hq/` y, si el archivo no es JSON válido, no lo toca. Con su OK:
 
    ```bash
    ~/Applications/ClaudeHQ.app/Contents/MacOS/ClaudeHQ install
@@ -42,6 +44,8 @@ Claude HQ es una **app de macOS independiente**, no una dependencia ni una libre
 | Hooks y status line | `~/.claude/settings.json` (global) |
 
 ## Desinstalar
+
+El orden importa: primero `uninstall`, después borrar. Si se borra la app sin desconectar, la status line del usuario queda apuntando a un programa que ya no existe.
 
 ```bash
 ~/Applications/ClaudeHQ.app/Contents/MacOS/ClaudeHQ uninstall   # quita hooks y restaura la status line

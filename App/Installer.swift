@@ -12,24 +12,52 @@ enum Installer {
     static var binPath: String { Bundle.main.executablePath ?? CommandLine.arguments[0] }
     static func quoted(_ s: String) -> String { "\"" + s.replacingOccurrences(of: "\"", with: "\\\"") + "\"" }
 
+    enum SettingsError: LocalizedError {
+        case unreadable(String)
+        var errorDescription: String? {
+            switch self {
+            case .unreadable(let path): return "No pude leer \(path) (¿JSON inválido?). No lo toqué; corrígelo y vuelve a intentar."
+            }
+        }
+    }
+
+    /// Lectura tolerante, solo para consultar (nunca se usa para reescribir el archivo).
     static func readSettings() -> [String: Any] {
-        guard let d = FileManager.default.contents(atPath: HQPaths.claudeSettings),
-              let o = try? JSONSerialization.jsonObject(with: d) as? [String: Any] else { return [:] }
+        (try? readSettingsForWrite()) ?? [:]
+    }
+
+    /// Lectura estricta antes de escribir: si el archivo existe pero no se puede interpretar,
+    /// falla en lugar de devolver vacío, para no borrar la configuración del usuario.
+    static func readSettingsForWrite() throws -> [String: Any] {
+        let path = HQPaths.claudeSettings
+        guard FileManager.default.fileExists(atPath: path) else { return [:] }
+        guard let d = FileManager.default.contents(atPath: path) else { throw SettingsError.unreadable(path) }
+        if String(decoding: d, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return [:] }
+        guard let o = try? JSONSerialization.jsonObject(with: d) as? [String: Any] else { throw SettingsError.unreadable(path) }
         return o
     }
 
+    /// Respalda y escribe settings.json. Respeta symlinks (escribe en el destino real),
+    /// conserva los permisos del original y propaga cualquier error.
     static func writeSettings(_ s: [String: Any]) throws {
         let data = try JSONSerialization.data(withJSONObject: s, options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes])
-        hqWriteAtomic(data, to: HQPaths.claudeSettings)
+        let fm = FileManager.default
+        try fm.createDirectory(atPath: HQPaths.claudeDir, withIntermediateDirectories: true)
+        try backup()
+        let target = URL(fileURLWithPath: HQPaths.claudeSettings).resolvingSymlinksInPath().path
+        let perms = (try? fm.attributesOfItem(atPath: target))?[.posixPermissions]
+        try hqWriteAtomicThrowing(data, to: target)
+        if let perms { try? fm.setAttributes([.posixPermissions: perms], ofItemAtPath: target) }
     }
 
-    static func backup() {
+    static func backup() throws {
         let fm = FileManager.default
         guard fm.fileExists(atPath: HQPaths.claudeSettings) else { return }
         let f = DateFormatter(); f.dateFormat = "yyyyMMdd-HHmmss"
         let dest = HQPaths.hqDir + "/settings.backup-\(f.string(from: Date())).json"
         HQPaths.ensureDirs()
-        try? fm.copyItem(atPath: HQPaths.claudeSettings, toPath: dest)
+        if fm.fileExists(atPath: dest) { return }  // ya hay respaldo de este mismo segundo
+        try fm.copyItem(atPath: URL(fileURLWithPath: HQPaths.claudeSettings).resolvingSymlinksInPath().path, toPath: dest)
     }
 
     static var hookCommand: String { quoted(binPath) + " hook 2>/dev/null || true" }
@@ -60,8 +88,7 @@ enum Installer {
     }
 
     static func install() throws {
-        backup()
-        var s = readSettings()
+        var s = try readSettingsForWrite()
         var hooks = s["hooks"] as? [String: Any] ?? [:]
         let command = hookCommand
         for ev in events {
@@ -76,19 +103,22 @@ enum Installer {
         var cfg = HQConfig.load()
         let current = s["statusLine"] as? [String: Any]
         let currentCmd = current?["command"] as? String
-        if let c = currentCmd, !c.contains(marker) { cfg.prevStatusLine = c }
+        if let c = currentCmd, !c.isEmpty {
+            if !c.contains(marker) { cfg.prevStatusLine = c }
+        } else {
+            cfg.prevStatusLine = nil
+        }
         var sl = current ?? [:]
         sl["type"] = "command"
         sl["command"] = statusCommand
         s["statusLine"] = sl
+        try writeSettings(s)
         cfg.installed = true
         cfg.save()
-        try writeSettings(s)
     }
 
     static func uninstall() throws {
-        backup()
-        var s = readSettings()
+        var s = try readSettingsForWrite()
         var hooks = s["hooks"] as? [String: Any] ?? [:]
         for (ev, v) in hooks {
             let list = (v as? [[String: Any]] ?? []).filter { !entryIsOurs($0) }
@@ -104,8 +134,8 @@ enum Installer {
                 s["statusLine"] = nil
             }
         }
+        try writeSettings(s)
         cfg.installed = false
         cfg.save()
-        try writeSettings(s)
     }
 }

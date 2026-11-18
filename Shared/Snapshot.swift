@@ -78,3 +78,15 @@ func hqWriteAtomic(_ data: Data, to path: String) {
         _ = rename(tmp, path)
     }
 }
+
+/// Igual que hqWriteAtomic, pero lanza error si no pudo escribir (para archivos del usuario).
+func hqWriteAtomicThrowing(_ data: Data, to path: String) throws {
+    let tmp = path + ".tmp-\(getpid())"
+    try data.write(to: URL(fileURLWithPath: tmp))
+    if rename(tmp, path) != 0 {
+        let err = errno
+        try? FileManager.default.removeItem(atPath: tmp)
+        throw NSError(domain: NSPOSIXErrorDomain, code: Int(err),
+                      userInfo: [NSLocalizedDescriptionKey: "No pude escribir \(path): \(String(cString: strerror(err)))"])
+    }
+}

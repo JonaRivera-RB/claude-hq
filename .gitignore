@@ -3,3 +3,4 @@ dist/
 *.xcodeproj/xcuserdata/
 *.xcodeproj/project.xcworkspace/xcuserdata/
 .DS_Store
+ClaudeHQ.xcodeproj/

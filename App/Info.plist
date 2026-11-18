@@ -29,6 +29,6 @@
 	<key>NSAppleEventsUsageDescription</key>
 	<string>Claude HQ usa esto para llevarte a la ventana de Terminal o iTerm2 donde corre cada sesión de Claude Code.</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Uso personal</string>
+	<string>© 2026 Jonathan Rivera · MIT</string>
 </dict>
 </plist>

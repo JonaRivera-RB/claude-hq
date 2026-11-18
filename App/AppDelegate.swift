@@ -341,13 +341,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         case "setModel":
             if let m = body["model"] as? String {
                 do { try ClaudeSettings.setModel(m.lowercased()); toast("Modelo por defecto: \(m). Aplica a sesiones nuevas.") }
-                catch { toast("No pude guardar el modelo") }
+                catch { toast("No pude guardar el modelo: \(error.localizedDescription)") }
                 refresh()
             }
         case "setPerm":
             if let m = body["mode"] as? String {
                 do { try ClaudeSettings.setPermissionMode(m); toast("Permisos por defecto actualizados. Aplica a sesiones nuevas.") }
-                catch { toast("No pude guardar los permisos") }
+                catch { toast("No pude guardar los permisos: \(error.localizedDescription)") }
                 refresh()
             }
         case "mode":
@@ -395,8 +395,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
     }
 
     private func toast(_ text: String) {
-        let esc = text.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "'", with: "\\'")
-        webView.evaluateJavaScript("window.hq && hq.toast('\(esc)')")
+        // Serializado como JSON: seguro con comillas, barras y saltos de línea.
+        guard let d = try? JSONSerialization.data(withJSONObject: [text]),
+              let arr = String(data: d, encoding: .utf8) else { return }
+        webView.evaluateJavaScript("window.hq && hq.toast(\(arr)[0])")
     }
 
     private func focus(_ sid: String) {
@@ -488,7 +490,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         a.addButton(withTitle: "Cancelar")
         NSApp.activate(ignoringOtherApps: true)
         if a.runModal() == .alertFirstButtonReturn {
-            do { try Installer.uninstall(); toast("Desconectado") } catch { toast("No pude desconectar") }
+            do { try Installer.uninstall(); toast("Desconectado") } catch { toast("No pude desconectar: \(error.localizedDescription)") }
             refresh()
         }
     }

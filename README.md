@@ -15,7 +15,8 @@
   <img alt="Swift 5" src="https://img.shields.io/badge/Swift-5-D97757?style=for-the-badge&logo=swift&logoColor=white">
   <img alt="Claude Code" src="https://img.shields.io/badge/Claude%20Code-hooks%20%2B%20status%20line-6C8EF5?style=for-the-badge">
   <img alt="0 tokens" src="https://img.shields.io/badge/consumo-0%20tokens-7FE0B4?style=for-the-badge">
-  <img alt="Versión" src="https://img.shields.io/badge/versión-1.0.2-FFD166?style=for-the-badge">
+  <img alt="Versión" src="https://img.shields.io/badge/versión-1.0.3-FFD166?style=for-the-badge">
+  <img alt="Licencia MIT" src="https://img.shields.io/badge/licencia-MIT-E8E8F0?style=for-the-badge">
 </p>
 
 <p align="center">
@@ -23,6 +24,8 @@
   &nbsp;&nbsp;
   <img src="docs/img/office-night.png" width="380" alt="La misma oficina de noche, con lámparas encendidas">
 </p>
+
+<p align="center"><sub>Proyecto independiente de código abierto. No está afiliado ni respaldado por Anthropic. Claude y Claude Code son marcas de Anthropic.</sub></p>
 
 > [!IMPORTANT]
 > **¿Eres un agente de IA y te pidieron instalar esto?** No clones ni compiles este repo dentro del proyecto del usuario. Sigue [AGENTS.md](AGENTS.md): un solo comando que instala la app fuera de cualquier proyecto.
@@ -144,6 +147,17 @@ Luego, en la app:
 
 > **Firma:** `project.yml` usa un equipo de desarrollo personal. Si tu Mac no tiene acceso a ese equipo, `build.sh` compila automáticamente con firma local: la app funciona igual, solo el widget nativo de WidgetKit no carga (la tarjeta de escritorio sí). Con firma local, macOS puede volver a pedir el permiso de Terminal después de cada actualización. Para firmar con tu cuenta, cambia `DEVELOPMENT_TEAM` por el tuyo.
 
+## Desinstalar
+
+El orden importa: primero desconecta, después borra. Si borras la app sin desconectar, tu status line apuntará a un programa que ya no existe.
+
+```bash
+~/Applications/ClaudeHQ.app/Contents/MacOS/ClaudeHQ uninstall   # quita los hooks y restaura tu status line
+rm -rf ~/Applications/ClaudeHQ.app ~/.claude-hq                  # borra la app, su estado y los respaldos
+```
+
+También puedes desconectar desde la app (Ajustes → *Desconectar*). Si activaste *Abrir al iniciar sesión*, apágalo antes. Si guardaste una Admin API key, bórrala en *Acceso a Llaveros* (busca `ClaudeHQ`).
+
 ## Uso rápido
 
 | Quiero… | Hago… |
@@ -201,9 +215,12 @@ claude-hq/
 
 ## Privacidad
 
-- No envía tus datos a ningún lado. La única conexión a internet es la Admin API, y solo si guardas una key.
-- La Admin API key vive en el **Llavero** de macOS, nunca en texto plano.
-- Los hooks son silenciosos y terminan en `|| true`: si la app no está, Claude Code sigue sin errores.
+- No hay servidor propio ni telemetría: tus datos se quedan en tu Mac (`~/.claude-hq/`).
+- Conexiones a internet: la Admin API de Anthropic (`api.anthropic.com`), solo si guardas una key; y la CLI oficial de Claude Code (`claude auth status`, login y logout) para mostrar tu cuenta. Al compilar, `build.sh` puede descargar la fuente Pixelify Sans si falta.
+- La Admin API key vive en el **Llavero** de macOS, nunca en texto plano. Tiene alcance de administrador de tu organización: crea una dedicada para Claude HQ y revócala si dejas de usarla.
+- De los transcripts solo se leen conteos de tokens, modelo y horas; no se guarda el contenido de tus conversaciones. Los hooks sí guardan la actividad reciente de cada sesión (archivos tocados, comandos ejecutados) en `~/.claude-hq/sessions` para mostrarla en la oficina.
+- Cada vez que Claude HQ modifica `~/.claude/settings.json` guarda antes un respaldo en `~/.claude-hq/`. Si el archivo no es JSON válido, no lo toca.
+- Los hooks son silenciosos y terminan en `|| true`: si la app no está, Claude Code sigue sin errores. La status line sí depende de la app; por eso hay que desconectar antes de desinstalar.
 - El texto que llega de tus sesiones se escapa antes de pintarse, así que nunca se ejecuta como HTML.
 
 ## Solución de problemas
@@ -245,8 +262,13 @@ Una versión nueva cambió el formato de los hooks. Tócalo para reinstalarlos; 
 - [ ] Versión web en `localhost` para verla desde el navegador
 - [ ] Resumen opcional de cada sesión con Haiku (apagado por defecto, porque gasta tokens)
 
+## Licencia
+
+El código está bajo la licencia [MIT](LICENSE). La fuente Pixelify Sans incluida en `web/fonts/` conserva su propia licencia, la SIL Open Font License 1.1 (`web/fonts/OFL.txt`).
+
 ## Créditos
 
+- Proyecto independiente, no afiliado ni respaldado por Anthropic. Claude y Claude Code son marcas de Anthropic.
 - Fuente [Pixelify Sans](https://github.com/eifetx/Pixelify-Sans) bajo la SIL Open Font License (`web/fonts/OFL.txt`).
 - Construido con [Claude Code](https://claude.com/claude-code).
 

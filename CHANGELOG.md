@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.3 — 2026-11-18
+
+- Código abierto bajo licencia MIT.
+- `~/.claude/settings.json` más seguro: si no es JSON válido, Claude HQ no lo toca; cada escritura (incluidos los botones de modelo y permisos) guarda un respaldo antes; respeta symlinks y permisos; los errores se muestran en lugar de decir «conectado».
+- La status line anterior se olvida si ya no existe al volver a conectar.
+- `install.sh` actualiza con `fetch` + `reset` (ya no falla por archivos generados) y deja de rastrearse `ClaudeHQ.xcodeproj`, que genera XcodeGen.
+- El proyecto se genera en formato de Xcode 15.
+- README: secciones de Desinstalar y Licencia, privacidad más precisa y aviso de proyecto no afiliado a Anthropic. `AGENTS.md` pide al agente confirmar con el usuario antes de conectar.
+
 ## 1.0.2 — 2026-11-16
 
 - Instalador de un solo comando (`scripts/install.sh`): clona y compila en `~/.claude-hq/src`, sin escribir nada en la carpeta donde se ejecuta.
